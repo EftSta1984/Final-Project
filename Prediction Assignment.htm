@@ -1,0 +1,327 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 15 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:"Lucida Console";
+	panose-1:2 11 6 9 4 5 4 2 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:103%;
+	text-autospace:ideograph-other;
+	font-size:11.0pt;
+	font-family:"Calibri",sans-serif;}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:.5in;
+	line-height:103%;
+	text-autospace:ideograph-other;
+	font-size:11.0pt;
+	font-family:"Calibri",sans-serif;}
+.MsoChpDefault
+	{font-family:"Calibri",sans-serif;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:105%;
+	text-autospace:ideograph-other;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US>
+
+<div class=WordSection1>
+
+<p class=MsoListParagraph style='margin-bottom:6.0pt;text-indent:-.25in'><span
+style='font-size:18.0pt;line-height:103%'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><span style='font-size:18.0pt;line-height:103%'>Data loading</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in'><span style='font-size:12.0pt;line-height:103%'>Load caret
+and ggplot2 packages</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;background:#D9D9D9'><span style='font-size:12.0pt;line-height:
+103%;font-family:"Arial",sans-serif'>library(caret);
+library(ggplot2)&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in'><span style='font-size:12.0pt;line-height:103%'>The next step
+is to load the train and test data sets. To be able to preprocess the input
+data, the entries <b>NA</b> and <b>DIV/0!</b> are both set to be NA</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>input_train
+&lt;- read.csv(&quot;pml-training.csv&quot;,
+na.strings=c(&quot;NA&quot;,&quot;#DIV/0!&quot;))</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;background:#D9D9D9'><span style='font-size:12.0pt;line-height:
+103%;font-family:"Arial",sans-serif'>input_test &lt;-
+read.csv(&quot;pml-testing.csv&quot;,
+na.strings=c(&quot;NA&quot;,&quot;#DIV/0!&quot;)) </span></p>
+
+<p class=MsoNormal style='margin-bottom:6.0pt'>&nbsp;</p>
+
+<p class=MsoListParagraph style='margin-bottom:6.0pt;text-align:justify;
+text-indent:-.25in'><span style='font-size:18.0pt;line-height:103%'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span><span
+style='font-size:18.0pt;line-height:103%'>Data Preprocessing</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in;text-align:justify'><span style='font-size:12.0pt;line-height:
+103%'>It is useful to know in advance the set of output values, which we are
+going to predict. In our case it turns out that the output takes a value in the
+discrete set <i>S</i> = {A, B, C, D, E}. Note here that the <b>table()</b>
+command shows the number of occurrences for each discrete output. This is
+useful to check, prior to building our predictor, because we can check the
+appearance frequency of each elements of <i>S.</i> If there is strong bias
+towards a particular value then one should be careful in using <b>accuracy</b>
+as performance measure because a naïve majority-class predictor can give good
+accuracy results. However as we can see below the appearance frequencies
+suggest that all the components appear sufficiently often (each frequency is
+around 20% which corresponds to an almost uniform spread) in our training
+sample. </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;text-align:justify;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>table(input_train$classe)/length(input_train$classe)</span><span
+style='line-height:103%;font-family:"Arial",sans-serif'> </span></p>
+
+<div align=center>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=488
+ style='width:365.9pt;border-collapse:collapse'>
+ <tr>
+  <td width=104 style='width:77.9pt;border:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-top:0in;margin-right:-.2in;margin-bottom:
+  0in;margin-left:0in;margin-bottom:.0001pt;line-height:normal'>Output</p>
+  </td>
+  <td width=77 style='width:.8in;border:solid black 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-top:0in;margin-right:-.2in;margin-bottom:
+  0in;margin-left:0in;margin-bottom:.0001pt;line-height:normal'>A</p>
+  </td>
+  <td width=77 style='width:.8in;border:solid black 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-top:0in;margin-right:-.2in;margin-bottom:
+  0in;margin-left:0in;margin-bottom:.0001pt;line-height:normal'>B</p>
+  </td>
+  <td width=77 style='width:.8in;border:solid black 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-top:0in;margin-right:-.2in;margin-bottom:
+  0in;margin-left:0in;margin-bottom:.0001pt;line-height:normal'>C</p>
+  </td>
+  <td width=77 style='width:.8in;border:solid black 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-top:0in;margin-right:-.2in;margin-bottom:
+  0in;margin-left:0in;margin-bottom:.0001pt;line-height:normal'>D </p>
+  </td>
+  <td width=77 style='width:.8in;border:solid black 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-top:0in;margin-right:-.2in;margin-bottom:
+  0in;margin-left:0in;margin-bottom:.0001pt;line-height:normal'>E</p>
+  </td>
+ </tr>
+ <tr>
+  <td width=104 style='width:77.9pt;border:solid black 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'>Frequency</p>
+  </td>
+  <td width=77 style='width:.8in;border-top:none;border-left:none;border-bottom:
+  solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:10.0pt;font-family:"Lucida Console";
+  color:black'>0.284</span></p>
+  </td>
+  <td width=77 style='width:.8in;border-top:none;border-left:none;border-bottom:
+  solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:10.0pt;font-family:"Lucida Console";
+  color:black'>0.196</span></p>
+  </td>
+  <td width=77 style='width:.8in;border-top:none;border-left:none;border-bottom:
+  solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:10.0pt;font-family:"Lucida Console";
+  color:black'>0.174</span></p>
+  </td>
+  <td width=77 style='width:.8in;border-top:none;border-left:none;border-bottom:
+  solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:10.0pt;font-family:"Lucida Console";
+  color:black'>0.164</span></p>
+  </td>
+  <td width=77 style='width:.8in;border-top:none;border-left:none;border-bottom:
+  solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+  normal'><span style='font-size:10.0pt;font-family:"Lucida Console";
+  color:black'>0.184</span></p>
+  </td>
+ </tr>
+</table>
+
+</div>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;text-align:justify'>&nbsp;</p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in;text-align:justify'><span style='font-size:12.0pt;line-height:
+103%'>At the reprocessing stage it seems intuitive to discard the first seven
+columns that are not related to the output variate <b>classe.</b></span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;background:#D9D9D9'><span style='font-size:12.0pt;line-height:
+103%;font-family:"Arial",sans-serif'>input_train &lt;- input_train[,-c(1:7)];
+input_test = input_test[,-c(1:7)]</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in;text-align:justify'><span style='font-size:12.0pt;line-height:
+103%'>It is also interesting to check the content of the columns. A simple
+inspection, using the head() or tail() functions, indicates that certain
+columns have almost no components. It is possible to check how many columns are
+sparse, i.e., have few input data. The following set of commands returns the
+columns, whose missing or NA values, constitute more than 90% of the column
+size and then drops them from the training and the testing sets, respectively. </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>high_num_NAs
+&lt;- sapply(input_train, function(x){mean(is.na(x))&gt;0.9}) </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>input_train
+&lt;- input_train[,high_num_NAs == FALSE] ; </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;background:#D9D9D9'><span style='font-size:12.0pt;line-height:
+103%;font-family:"Arial",sans-serif'>input_test &lt;- input_test[,high_num_NAs
+== FALSE]</span></p>
+
+<p class=MsoNormal style='margin-bottom:6.0pt'><span style='font-size:14.0pt;
+line-height:103%'>&nbsp;</span></p>
+
+<p class=MsoListParagraph style='margin-bottom:6.0pt;text-indent:-.25in'><span
+style='font-size:18.0pt;line-height:103%'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;
+</span></span><span style='font-size:18.0pt;line-height:103%'>Model Training</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in'><span style='font-size:12.0pt;line-height:103%'>Split the
+training set into a validation (30%) and a training (70%) subset,
+respectively.&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>inBuild
+&lt;- createDataPartition(input_train$classe, p=0.7, list=FALSE) </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>validation_data
+&lt;- input_train[-inBuild,] # Create the validation set</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;text-align:justify;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>train_data&lt;-input_train[inBuild,]
+# Create the train set</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in;text-align:justify'><span style='font-size:12.0pt;line-height:
+103%'>The following set of commands trains a boosting model and checks its
+accuracy on the </span><span style='font-size:12.0pt;line-height:103%'>validation
+subset. It turns out that the accuracy is 0.967</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>modFit_gb
+&lt;- train(classe ~ ., method=&quot;gbm&quot;, data=train_data, verbose=FALSE)</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;line-height:104%;background:#D9D9D9'><span style='font-size:
+12.0pt;line-height:104%;font-family:"Arial",sans-serif'>confusionMatrix(validation_data$classe,
+&nbsp;predict(modFit_gb, validation_data))&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in;text-align:justify'><span style='font-size:12.0pt;line-height:
+103%'>The following set of commands trains a random forest model and checks its
+accuracy on the validation subset. It turns out that the accuracy is 0.992</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>modFit_rf
+&lt;- train(classe ~ ., method=&quot;rf&quot;, data=train_data)</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:6.0pt;
+margin-left:.25in;background:#D9D9D9'><span style='font-size:12.0pt;line-height:
+103%;font-family:"Arial",sans-serif'>confusionMatrix(validation_data$classe,
+predict(modFit_rf, validation_data))</span></p>
+
+<p class=MsoNormal style='margin-bottom:6.0pt;text-align:justify'>&nbsp;</p>
+
+<p class=MsoListParagraph style='margin-bottom:6.0pt;text-align:justify;
+text-indent:-.25in'><span style='font-size:18.0pt;line-height:103%'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span><span
+style='font-size:18.0pt;line-height:103%'>Prediction Stage</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:12.0pt;
+margin-left:.1in;text-align:justify'><span style='font-size:12.0pt;line-height:
+103%'>In the final stage, we make predictions using the testing data. To
+implement a majority classifier, one needs an odd number of models. However, it
+turns out that the predictions provided by the two models are identical. This
+suggests that the result are correct, which is </span><span style='font-size:
+12.0pt;line-height:103%'>indeed the case.</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>pred_gb
+&lt;- predict(modFit_gb, input_test)</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>pred_rf
+&lt;- predict(modFit_rf, input_test)</span></p>
+
+<p class=MsoNormal style='margin-top:0in;margin-right:0in;margin-bottom:0in;
+margin-left:.25in;margin-bottom:.0001pt;background:#D9D9D9'><span
+style='font-size:12.0pt;line-height:103%;font-family:"Arial",sans-serif'>pred_frame
+&lt;- data.frame(pred_gb, pred_rf)</span></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+</div>
+
+</body>
+
+</html>
